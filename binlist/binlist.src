@@ -1,0 +1,51 @@
+print("\n<color=#9739FF>############################</color>")
+print("<color=#9739FF>  binlist v1.1</color> <color=#666>by Damdrara</color>")
+print("<color=#9739FF>############################</color>\n")
+
+if params.len > 0 then
+	print("<b>Usage:</b>")
+	print("<color=#DB39FF>binlist</color>")
+	exit(" ")
+end if
+
+metaxploit = include_lib("/lib/metaxploit.so")
+if not metaxploit then
+	metaxploit = include_lib(current_path + "/metaxploit.so")
+end if
+
+listFiles = function(path, metaxploit = null)
+	parent = get_shell.host_computer.File(path)
+	if parent.is_folder then
+	files = parent.get_files
+	fileNames = []
+	for file in files
+		fileNames.push(file.path)
+	end for
+	fileNames.sort()
+	for fileName in fileNames
+		if metaxploit then
+			lib = metaxploit.load(fileName)	
+			if lib then
+				print("- " + fileName + " <color=#666>v" + lib.version + "</color>")
+					continue
+				end if
+			end if	
+			print("- " + fileName)
+		end for
+	end if
+end function
+
+print("<color=#9739FF>Libraries:</color>")
+listFiles("/lib", metaxploit)
+
+if not metaxploit then 
+	print("<color=#ff0000>Can't display version numbers because metaxploit library could not be found in /lib or the current folder</color>")
+end if
+
+print("")
+print("<color=#9739FF>CLI Commands:</color>")
+listFiles("/bin")
+
+print("")
+print("<color=#9739FF>GUI Apps:</color>")
+listFiles("/usr/bin")
