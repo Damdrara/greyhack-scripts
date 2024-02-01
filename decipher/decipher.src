@@ -1,0 +1,114 @@
+print("\n<color=#9739FF>#############################</color>")
+print("<color=#9739FF>  decipher v2.0</color> <color=#666>by Damdrara</color>")
+print("<color=#9739FF>#############################</color>\n")
+
+if params.len != 1 or params[0] == "-h" or params[0] == "--help" then
+	print("<b>Usage:</b>")
+	print("<color=#DB39FF>decipher [encrypted file]</color>")
+	print("Example:")
+	print("  <color=#999>decipher /etc/passwd</color>")
+	print("")
+	print("<color=#DB39FF>decipher [encrypted password]</color>")
+	print("Example:")
+	print("  <color=#999>decipher root:21485cf7fbdb49742a6c63c2463e44db</color>")
+	print("  <color=#999>decipher 21485cf7fbdb49742a6c63c2463e44db</color>")
+	exit(" ")
+end if
+
+cryptools = include_lib("/lib/crypto.so")
+if not cryptools then exit("<color=red>Missing library: crypto.so</color>")
+
+GetPassword = function(passLine)
+	userPass = passLine.split(":")
+
+	if userPass.len == 0 or userPass.len > 2 then
+		exit("<color=red>Error: PassLine format not recognized</color>")
+	end if
+
+	wait(.5)
+	if userPass.len == 1 then 
+		password = cryptools.decipher(userPass[0])
+		if not password then 
+			print "<color=red>Failed to decipher password</color>"
+		end if
+		print "<color=#9739FF>Password found: </color>" + password
+		return
+	end if
+
+	password = cryptools.decipher(userPass[1])
+	if not password then 
+		print "<color=#9739FF>Credentials found: </color>" + userPass[0] + " - <color=red>Failed to decipher password</color>"
+	end if
+	print "<color=#9739FF>Credentials found: </color>" + userPass[0] + " / " + password
+
+end function
+
+
+GetPasswordsFromFile = function(file, origFile)
+	if not file isa File then exit("<color=red>" + origFile + " is not a file</color>")
+	if file.is_binary then exit("<color=red>" + origFile + " is binary</color>")
+	if not file.has_permission("r") then exit("<color=red>" + origFile + " can't be read: Permission denied</color>")
+	if file.get_content.len == 0 then exit("<color=red>" + origFile + " is empty</color>")
+		
+	lines = file.get_content.split("\n")
+
+	validLines = [];
+	for line in lines 
+		if line.len > 0 then
+			splitLine = line.split(":")
+			if (splitLine.len == 2) then 
+				validLines.push(line)
+			end if
+		end if
+	end for
+	
+	if validLines.len == 0 then exit("<color=red>" + origFile + " does not contain any valid entries</color>")
+
+	if validLines.len == 1 then		
+		return GetPassword(lines[0])
+
+	else
+		print("<color=#DB39FF>Multiple users found:</color>")
+		print("  0: All users")
+		numLine = 0
+		for line in validLines
+			if line.len > 0 then
+				numLine = numLine + 1
+				splitLine = line.split(":")
+				print("  " + numLine + ": " + splitLine[0])
+			end if
+		end for
+		print("")
+		
+		option = ""
+		inputOk = false
+		while( not inputOk )
+			option = user_input("Make a choice (0 - "+ numLine + "): ").to_int
+			if typeof(option) != "number" or (option < 0 or option > validLines.len) then
+				print("<color=red>Invalid input. Type a valid number</color>")
+			else 
+				inputOk = true
+			end if
+		end while
+	
+		if option > 0 then
+			return GetPassword(validLines[option - 1])
+		end if
+
+		for line in validLines
+			GetPassword(line)
+		end for	
+	end if	
+end function
+
+
+input = params[0]
+
+file = get_shell.host_computer.File(input)
+if file then 
+	GetPasswordsFromFile(file, input)	
+	exit(" ")
+end if
+
+GetPassword(input)
+exit(" ")
