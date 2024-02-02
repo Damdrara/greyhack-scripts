@@ -12,6 +12,10 @@ if `metaexploit.so` is found in `/lib` or the current directory, library version
 **Optional dependency:** `metaxploit.so`
 
 
+## discover v1.0
+Runs whois, nmap and scanrouter on a target ip
+
+
 ## decipher v2.0
 An improved version of the game's own `decipher` tool, allowing the user to not only decipher:
 
