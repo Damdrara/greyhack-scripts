@@ -1,5 +1,5 @@
 print("\n<color=#9739FF>############################</color>")
-print("<color=#9739FF>  binlist v1.1</color> <color=#666>by Damdrara</color>")
+print("<color=#9739FF>  binlist v1.2</color> <color=#666>by Damdrara</color>")
 print("<color=#9739FF>############################</color>\n")
 
 if params.len > 0 then
@@ -8,9 +8,9 @@ if params.len > 0 then
 	exit(" ")
 end if
 
-metaxploit = include_lib("/lib/metaxploit.so")
+metaxploit = include_lib(current_path + "/metaxploit.so")
 if not metaxploit then
-	metaxploit = include_lib(current_path + "/metaxploit.so")
+	metaxploit = include_lib("/lib/metaxploit.so")	
 end if
 
 listFiles = function(path, metaxploit = null)

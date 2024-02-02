@@ -1,21 +1,24 @@
-print("\n<color=#9739FF>#############################</color>")
-print("<color=#9739FF>  decipher v2.0</color> <color=#666>by Damdrara</color>")
-print("<color=#9739FF>#############################</color>\n")
+print("\n<color=#9739FF>##############################</color>")
+print("<color=#9739FF>  decrypt v1.1</color> <color=#666>by Damdrara</color>")
+print("<color=#9739FF>##############################</color>\n")
 
 if params.len != 1 or params[0] == "-h" or params[0] == "--help" then
 	print("<b>Usage:</b>")
-	print("<color=#DB39FF>decipher [encrypted file]</color>")
+	print("<color=#DB39FF>decrypt [encrypted file]</color>")
 	print("Example:")
-	print("  <color=#999>decipher /etc/passwd</color>")
+	print("  <color=#999>decrypt /etc/passwd</color>")
 	print("")
-	print("<color=#DB39FF>decipher [encrypted password]</color>")
+	print("<color=#DB39FF>decrypt [encrypted password]</color>")
 	print("Example:")
-	print("  <color=#999>decipher root:21485cf7fbdb49742a6c63c2463e44db</color>")
-	print("  <color=#999>decipher 21485cf7fbdb49742a6c63c2463e44db</color>")
+	print("  <color=#999>decrypt root:21485cf7fbdb49742a6c63c2463e44db</color>")
+	print("  <color=#999>decrypt 21485cf7fbdb49742a6c63c2463e44db</color>")
 	exit(" ")
 end if
 
-cryptools = include_lib("/lib/crypto.so")
+cryptools = include_lib(current_path + "/crypto.so")
+if not cryptools then
+	cryptools = include_lib("/lib/crypto.so")	
+end if
 if not cryptools then exit("<color=red>Missing library: crypto.so</color>")
 
 GetPassword = function(passLine)
