@@ -1,0 +1,138 @@
+print("\n<color=#9739FF>#############################</color>")
+print("<color=#9739FF>  discover v1.0</color> <color=#666>by Damdrara</color>")
+print("<color=#9739FF>#############################</color>")
+
+if params.len != 1 or params[0] == "-h" or params[0] == "--help" then
+	print("\n<b>Usage:</b>")
+	print("<color=#DB39FF>discover [ip address]</color>")
+	print("Example:")
+	print("  <color=#999>discover 127.0.0.1</color>")
+	exit(" ")
+end if
+
+runWhois = function(ipAddress)
+	lines = whois(ipAddress).split("\n")
+	for line in lines
+		parts = line.split(":")
+		if parts[0] == "Error" then
+			print("<color=red>  ip address must be public</color>")
+			return
+		end if
+	
+		if parts[0] == "Domain name" then parts[0] = "Domain:"
+		if parts[0] == "Administrative contact" then parts[0] = "Admin: "
+		if parts[0] == "Email address" then parts[0] = "Email: "
+		if parts[0] == "Phone" then parts[0] = "Phone: "
+		
+		print("  <color=#666>" + parts[0] + "</color>" + parts[1])				
+	end for	
+end function
+
+getRouter = function(ipAddress)
+	isLanIp = is_lan_ip(ipAddress)
+	if isLanIp then
+		router = get_router;
+	else 
+   		router = get_router(ipAddress)
+	end if
+	return router
+end function
+
+runNmap = function(ipAddress)
+	isLanIp = is_lan_ip(ipAddress)
+	router = getRouter(ipAddress)
+	if router == null then 
+		print("<color=red>ip address not found</color>")
+		return
+	end if
+
+	ports = null
+	if not isLanIp then
+   		ports = router.used_ports
+	else
+   		ports = router.device_ports(ipAddress)
+	end if
+
+	if ports == null then 
+		print("<color=red>ip address not found</color>")
+		return
+	end if
+		
+	if typeof(ports) == "string" then 
+		print(ports)
+		return
+	end if
+
+	if(ports.len == 0) then 
+		print("<color=#666>No open ports found</color>")
+		return
+	end if
+	
+	info = " PORT STATE SERVICE VERSION LAN"   
+
+	for port in ports
+		service_info = router.port_info(port)
+		lan_ips = port.get_lan_ip
+		port_status = "open"
+		
+		if(port.is_closed and not isLanIp) then
+			port_status = "closed"
+		end if
+	
+		info = info + "\n " + port.port_number + " " + port_status + " " + service_info + " " + lan_ips
+	end for
+	output = format_columns(info)
+	lines = output.split("\n")
+	lines[0] = "<color=#666>" + lines[0] + "</color>"	
+	print(lines.join("\n"))		
+end function
+
+runScanRouter = function(ipAddress)
+	router = getRouter(ipAddress)
+	if router == null then 
+		print("<color=red>ip address not found</color>")
+		return
+	end if
+
+	version = router.kernel_version
+	if not version then
+		print("  <color=#666>kernel_router.so not found</color>")
+	else 
+		print("  <color=#666>kernel_router.so :</color> v" + version)
+	end if
+
+	firewall_rules = router.firewall_rules
+	if typeof(firewall_rules) == "string" then 
+		print(firewall_rules)
+		return
+	end if
+
+	if(firewall_rules.len == 0) then 
+		print("  <color=#666>No firewall rules found</color>")
+		return
+	end if
+
+	info = " ACTION PORT SOURCE_IP DESTINATION_IP"
+	for rules in firewall_rules
+		info = info + "\n " + rules
+	end for
+	
+	output = format_columns(info)
+	lines = output.split("\n")
+	lines[0] = "<color=#666>" + lines[0] + "</color>"	
+	print(lines.join("\n"))			
+end function
+
+
+ipAddress = params[0]
+
+print("\n<color=#DB39FF>Whois:</color>")
+runWhois(ipAddress)
+
+print("\n<color=#DB39FF>Open Ports:</color>")
+runNmap(ipAddress)
+
+print("\n<color=#DB39FF>Router Scan:</color>")
+runScanRouter(ipAddress)
+
+exit(" ")
