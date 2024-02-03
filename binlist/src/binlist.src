@@ -6,6 +6,9 @@ if params.len > 0 then
 	binName = program_path.split("/")[-1]
 	print("<b>Usage:</b>")
 	print("<color=#DB39FF>" + binName + "</color>")
+    print(" ")
+    print("<b>Optional Requirements:</b>")
+    print("- ./metaxploit.so or /lib/metaxploit.so")
 	exit(" ")
 end if
 

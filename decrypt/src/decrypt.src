@@ -13,6 +13,9 @@ if params.len != 1 or params[0] == "-h" or params[0] == "--help" then
 	print("Example:")
 	print("  <color=#999>" + binName + " root:21485cf7fbdb49742a6c63c2463e44db</color>")
 	print("  <color=#999>" + binName + " 21485cf7fbdb49742a6c63c2463e44db</color>")
+    print(" ")
+    print("<b>Requirements:</b>")
+    print("- ./crypto.so or /lib/crypto.so")
 	exit(" ")
 end if
 
