@@ -3,10 +3,11 @@ print("<color=#9739FF>  discover v1.0</color> <color=#666>by Damdrara</color>")
 print("<color=#9739FF>#############################</color>")
 
 if params.len != 1 or params[0] == "-h" or params[0] == "--help" then
+	binName = program_path.split("/")[-1]
 	print("\n<b>Usage:</b>")
-	print("<color=#DB39FF>discover [ip address]</color>")
+	print("<color=#DB39FF>" + binName + " [ip address]</color>")
 	print("Example:")
-	print("  <color=#999>discover 127.0.0.1</color>")
+	print("  <color=#999>" + binName + " 127.0.0.1</color>")
 	exit(" ")
 end if
 

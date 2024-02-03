@@ -3,15 +3,16 @@ print("<color=#9739FF>  decrypt v1.1</color> <color=#666>by Damdrara</color>")
 print("<color=#9739FF>##############################</color>\n")
 
 if params.len != 1 or params[0] == "-h" or params[0] == "--help" then
+	binName = program_path.split("/")[-1]
 	print("<b>Usage:</b>")
-	print("<color=#DB39FF>decrypt [encrypted file]</color>")
+	print("<color=#DB39FF>" + binName + " [encrypted file]</color>")
 	print("Example:")
-	print("  <color=#999>decrypt /etc/passwd</color>")
+	print("  <color=#999>" + binName + " /etc/passwd</color>")
 	print("")
-	print("<color=#DB39FF>decrypt [encrypted password]</color>")
+	print("<color=#DB39FF>" + binName + " [encrypted password]</color>")
 	print("Example:")
-	print("  <color=#999>decrypt root:21485cf7fbdb49742a6c63c2463e44db</color>")
-	print("  <color=#999>decrypt 21485cf7fbdb49742a6c63c2463e44db</color>")
+	print("  <color=#999>" + binName + " root:21485cf7fbdb49742a6c63c2463e44db</color>")
+	print("  <color=#999>" + binName + " 21485cf7fbdb49742a6c63c2463e44db</color>")
 	exit(" ")
 end if
 

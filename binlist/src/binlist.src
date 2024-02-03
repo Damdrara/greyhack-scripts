@@ -3,8 +3,9 @@ print("<color=#9739FF>  binlist v1.2</color> <color=#666>by Damdrara</color>")
 print("<color=#9739FF>############################</color>\n")
 
 if params.len > 0 then
+	binName = program_path.split("/")[-1]
 	print("<b>Usage:</b>")
-	print("<color=#DB39FF>binlist</color>")
+	print("<color=#DB39FF>" + binName + "</color>")
 	exit(" ")
 end if
 
