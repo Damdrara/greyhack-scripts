@@ -1,0 +1,59 @@
+print("\n<color=#9739FF>#########################</color>")
+print("<color=#9739FF>  scan v1.0</color> <color=#666>by Damdrara</color>")
+print("<color=#9739FF>#########################</color>\n")
+
+if params.len == 0 or params.len > 2 or params[0] == "-h" or params[0] == "--help" then 
+	binName = program_path.split("/")[-1]
+	print("<b>Usage:</b>")
+	print("<color=#DB39FF>" + binName + " [ip address] [(opt) port]</color>")
+	print("Example:")
+	print("  <color=#999>" + binName + " 205.128.27.88</color>")
+	print("  <color=#999>" + binName + " 205.128.27.88 80</color>")
+	print(" ")
+	print("<b>Requirements:</b>")
+	print("- ./metaxploit.so or /lib/metaxploit.so")
+	exit(" ")
+end if
+
+metaxploit = include_lib(current_path + "/metaxploit.so")
+if not metaxploit then
+	metaxploit = include_lib("/lib/metaxploit.so")	
+end if
+if not metaxploit then exit("<color=red>Missing library: metaxploit.so</color>")
+
+ipAddress = params[0]
+port = 0
+if params.len > 1 then
+	port = to_int(params[1])
+end if
+
+if not is_valid_ip(ipAddress) then exit("<color=red>Not a valid IP: " + ipAddress + "</color>")
+
+netSession = metaxploit.net_use(ipAddress, port)
+if not netSession then exit("<color=red>Failed to obtain session for " + ipAddress + " at port " + port + "</color>")
+
+metaLib = netSession.dump_lib
+if port > 0 then
+	print("<color=#DB39FF>Library:</color> " + metaLib.lib_name + " - v" + metaLib.version + " on port " + port)
+else 
+	print("<color=#DB39FF>Library:</color> " + metaLib.lib_name + " - v" + metaLib.version)
+end if
+
+listMem = metaxploit.scan(metaLib)
+
+if listMem.len == 0 then exit("<color=#666>Scan completed: No issues detected.</color>")
+
+print("\n<color=#666>Scan completed: detected issues:</color>")
+
+for mem in listMem
+	result = metaxploit.scan_address(metaLib, mem)
+	result = result.replace("decompiling source...\n","")
+	result = result.replace("searching unsecure values...\n","")
+	result = result.replace("Unsafe check: loop in array ", "<color=#DB39FF>" + mem + "</color> ")
+	result = result.replace("Unsafe check: string copy in ", "<color=#DB39FF>" + mem + "</color> ")
+	result = result.replace(". Buffer overflow.", "")	
+	result = result.replace("\n\n", "\n")	
+	print(result[0:result.len-2])
+end for	
+
+print " "
