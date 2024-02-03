@@ -1,0 +1,111 @@
+print("\n<color=#9739FF>#############################</color>")
+print("<color=#9739FF>  filetree v2.0</color> <color=#666>by Damdrara</color>")
+print("<color=#9739FF>#############################</color>\n")
+
+if params.len > 2 or (params.len >= 1 and (params[0] == "-h" or params[0] == "--help")) then 
+	binName = program_path.split("/")[-1]
+	print("<b>Usage:</b>")
+	print("<color=#DB39FF>" + binName + " [opt:-p] [path]</color>")
+	print("Example:")
+	print("  <color=#999>" + binName + " /home</color>")
+    print(" ")
+    print("<b>Optional Requirements:</b>")
+    print("- ./metaxploit.so or /lib/metaxploit.so")
+	exit(" ")
+end if
+
+metaxploit = include_lib(current_path + "/metaxploit.so")
+if not metaxploit then
+	metaxploit = include_lib("/lib/metaxploit.so")	
+end if
+
+handleFolder = function(folder, passwordMode, pad="")
+	nextPad = pad + "	"
+	output = ""
+	if not passwordMode then
+		folderName = folder.name
+		if folder.name != "/" then
+			folderName = folderName + "/"
+		end if
+		output = folder.permissions + " " + folder.owner + " " + folder.group + " " + pad + folderName + "\n"
+	end if
+	
+	for subfile in folder.get_files
+		output = output + handleFile(subfile, passwordMode, nextPad)
+	end for
+	
+	for subfolder in folder.get_folders
+		output = output + handleFolder(subfolder, passwordMode, nextPad)
+	end for
+
+	return output
+end function
+
+handleFile = function(file, passwordMode, pad="	")
+	if passwordMode then		
+		if not file.is_binary and (file.name == "Bank.txt" or file.name == "Mail.txt" or file.name == "passwd") then
+			print("<color=#DB39FF>" + file.path + "</color>")
+			if file.has_permission("r") then
+				print(file.get_content())				
+			end if			
+		end if
+		return ""
+	end if
+
+	if file.is_binary then
+		if metaxploit then
+			lib = metaxploit.load(file.path)
+			if lib then
+				return "b" + file.permissions + " " + file.owner + " " + file.group + " " + pad + file.name + " <color=#666>v" + lib.version + "</color>\n"
+			end if		
+		end if
+				
+		return "b" + file.permissions + " " + file.owner + " " + file.group + " " + pad + file.name + "\n"
+	end if
+
+	return "f" + file.permissions + " " + file.owner + " " + file.group + " " + pad + file.name + "\n"
+end function
+
+generateFileList = function(file, passwordMode)
+	if file.is_folder then
+		return handleFolder(file, passwordMode)	
+	else
+		return handleFile(file, passwordMode)
+	end if
+end function
+
+fileName = current_path
+passwordMode = params.len > 0 and params[0] == "-p"
+
+if params.len == 1 and params[0] != "-p" then
+	fileName = params[0]
+end if
+
+if params.len > 1 then
+	fileName = params[1]
+end if
+
+file = get_shell.host_computer.File(fileName)
+if not file or not file isa File then exit("<color=red>Path is not a file or folder</color>")
+
+formatted = format_columns(generateFileList(file, passwordMode))
+if not passwordMode then
+	for line in formatted.split("\n")
+		if line.len == 0 then
+			continue
+		end if
+	
+		if line[0] == "d" then
+			print("<color=#aaa>" + line[1:] + "</color>")
+			continue
+		end if
+	
+		if line[0] == "b" then
+			print("<color=#f6f>" + line[1:] + "</color>")
+			continue
+		end if
+	
+		print(line[1:])		
+	end for	
+end if
+print(" ")
