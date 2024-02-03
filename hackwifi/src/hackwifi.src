@@ -1,0 +1,88 @@
+print("\n<color=#9739FF>#############################</color>")
+print("<color=#9739FF>  hackwifi v1.0</color> <color=#666>by Damdrara</color>")
+print("<color=#9739FF>#############################</color>\n")
+
+if params.len < 1 or params.len > 2 or params[0] == "-h" or params[0] == "--help" then 
+	binName = program_path.split("/")[-1]
+	print("<b>Usage:</b>")
+	print("<color=#DB39FF>" + binName + "</color>")
+	print("Example:")
+	print("  <color=#999>" + binName + "</color>")
+    print(" ")
+    print("<b>Requirements:</b>")
+    print("- ./crypto.so or /lib/crypto.so")
+	exit(" ")
+end if
+
+device = "wlan0"
+
+cryptools = include_lib(current_path + "/crypto.so")
+if not cryptools then
+	cryptools = include_lib("/lib/crypto.so")	
+end if
+if not cryptools then exit("<color=red>Missing library: crypto.so</color>")
+
+computer = get_shell.host_computer
+
+ret = cryptools.airmon("start", device)
+if not ret then exit("<color=red>Device " + device + " not found</color>")
+
+networks = computer.wifi_networks(device)
+if not networks or networks.len == 0 then exit("<color=red>No networks found</color>")
+
+info = "ID BSSID PWR ESSID"
+index = 0
+for network in networks
+	index = index + 1
+	info = info + "\n" + index + ") " + network
+end for
+print(format_columns(info))
+
+option = ""
+inputOk = false
+while( not inputOk )
+	option = user_input("\n<color=green>Pick the WIFI (ID): </color>").to_int	
+	if typeof(option) != "number" or (option < 1 or option > networks.len) then
+		print("Invalid input. Type a valid number")
+	else 
+		inputOk = true
+	end if
+end while
+
+network = networks[option-1].split(" ")
+bssid = network[0]
+qulty = network[1][0:-1].to_int
+essid = network[2]
+acksNeeded = 300000/qulty
+
+print("<color=#666>Awaiting " + acksNeeded + " ACKs for " + essid + "</color>")
+result = cryptools.aireplay(bssid, essid, acksNeeded)
+
+fileName = current_path + "/file.cap"
+file = get_shell.host_computer.File(fileName)
+
+if not file then exit("<color=red>Failed to locate file.cap at " + fileName + "</color>")
+if file.is_folder or not file.is_binary then exit("<color=red>Not a valid file.cap at " + fileName + "</color>")
+if not file.has_permission("r") then exit("<color=red>Cannot read file.cap at " + fileName + ", lacking permissions</color>")
+
+key = cryptools.aircrack(file.path)
+if not key then exit("<color=red>Unable to crack key</color>")
+
+print("\n<color=#DB39FF>BSSID:</color> " + bssid)
+print("<color=#DB39FF>ESSID:</color> " + essid)
+print("<color=#DB39FF>Key:  </color> " + key)
+
+cryptools.airmon("stop", device)
+if file.has_permission("w") then
+	file.delete()
+end if
+
+option = user_input("\n<color=green>Key acquired, do you wish to connect? (y/<b>n</b></color>): ")	
+if option == "y" or option == "Y" then
+	print("\n<color=#999>Connecting...</color>")	
+	if computer.connect_wifi(device, bssid, essid, key) then
+		print("<color=#999>Connected!</color>\n")	
+	else 
+		exit("<color=red>Unable to crack key</color>\n")
+	end if
+end if
