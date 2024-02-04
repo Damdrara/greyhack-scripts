@@ -2,7 +2,7 @@ print("\n<color=#9739FF>#############################</color>")
 print("<color=#9739FF>  hackwifi v1.0</color> <color=#666>by Damdrara</color>")
 print("<color=#9739FF>#############################</color>\n")
 
-if params.len < 1 or params.len > 2 or params[0] == "-h" or params[0] == "--help" then 
+if params.len > 1 or (params.len == 1 and (params[0] == "-h" or params[0] == "--help")) then 
 	binName = program_path.split("/")[-1]
 	print("<b>Usage:</b>")
 	print("<color=#DB39FF>" + binName + "</color>")
